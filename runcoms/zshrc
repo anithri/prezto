@@ -10,5 +10,40 @@ if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
   source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
 fi
 
-# Customize to your needs...
+[[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" 
+
+# Customize to your need
+alias gst='git status'
+alias gss='git status -s'
+compdef _git gst=git-status
+compdef _git gss=git-status
+
+PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
+
+export TERM=xterm-256color
+export EDITOR=vim
+alias revm="rvm use `rvm current`"
+alias guard="bundle exec guard"
+alias vim-update="vim +BundleInstall +qall"
+alias dotty="~/workspace/dotty/bin/dotty"
+alias pc2="cd ~/workspace/;revm;cd pc2"
+export JAVA_HOME=/usr/lib/jvm/java-6-openjdk/
+export LESS='-R-i-P?f%f:stdin. ?m(%i/%m). Line %lb?L/%L(%Pb\%).'
+
+#if [[ -s ~/.zshrc-private.gpg && ! -s ~/.zshrc-private ]]; then
+  #~/bin/decrypt_file ~/.zshrc-private.gpg
+#fi
+#[[ -s ~/.zshrc-private ]] && source ~/.zshrc-private
+
+show_random_alias() {
+  saveIFS=$IFS
+  IFS=$'\n'
+  all_aliases=($(alias))
+  echo $all_aliases[$RANDOM%$#all_aliases+1]
+  IFS=$saveIFS
+}
+echo "************Learn your aliases************"
+for i in {1..5}; do show_random_alias; done; 
+echo
+echo
 
