@@ -2,18 +2,20 @@
 pmodload 'helper'
 
 CURRENT_BG='NONE'
-SEGMENT_SEPARATOR='⮀'
-
+LAST_BG='NONE'
+LEFT_SEGMENT_SEPARATOR='⮀'
+RIGHT_SEGMENT_SEPARATOR='⮂'
+DIR_COLOR=blue
 
 # Begin a segment
 # Takes two arguments, background and foreground. Both can be omitted,
 # rendering default background/foreground.
-prompt_segment() {
+left_prompt_segment() {
   local bg fg
   [[ -n $1 ]] && bg="%K{$1}" || bg="%k"
   [[ -n $2 ]] && fg="%F{$2}" || fg="%f"
   if [[ $CURRENT_BG != 'NONE' && $1 != $CURRENT_BG ]]; then
-    echo -n " %{$bg%F{$CURRENT_BG}%}$SEGMENT_SEPARATOR%{$fg%} "
+    echo -n " %{$bg%F{$CURRENT_BG}%}$LEFT_SEGMENT_SEPARATOR%{$fg%} "
   else
     echo -n "%{$bg%}%{$fg%} "
   fi
@@ -21,10 +23,23 @@ prompt_segment() {
   [[ -n $3 ]] && print -Pn $3
 }
 
+right_prompt_segment() {
+  local bg fg
+  [[ -n $1 ]] && bg="%K{$1}" || bg="%k"
+  [[ -n $2 ]] && fg="%F{$2}" || fg="%f"
+  if [[ $LAST_BG != 'NONE' && $1 != $LAST_BG ]]; then
+    echo -n " %{$bg%F{$LAST_BG}%}$RIGHT_SEGMENT_SEPARATOR%{$fg%} "
+  else
+    echo -n "%{$bg%}%{$fg%} "
+  fi
+  LAST_BG=$1
+  [[ -n $3 ]] && print -Pn $3
+}
+
 # End the prompt, closing any open segments
-prompt_end() {
+left_prompt_end() {
   if [[ -n $CURRENT_BG ]]; then
-    echo -n " %{%k%F{$CURRENT_BG}%}$SEGMENT_SEPARATOR"
+    echo -n " %{%k%F{$CURRENT_BG}%}$LEFT_SEGMENT_SEPARATOR"
   else
     echo -n "%{%k%}"
   fi
@@ -32,13 +47,43 @@ prompt_end() {
   CURRENT_BG=''
 }
 
-function build_prompt {
-  prompt_segment black default '%(1?;%{%F{red}%}✘ ;)%(!;%{%F{yellow}%}⚡ ;)%(1j;%{%F{cyan}%}%j⚙ ;)%{%F{blue}%}%n%{%F{red}%}@%{%F{green}%}%M'
-  prompt_segment blue black '%2~'
-  if $git_status; then
-    prompt_segment green black '${(e)git_info[prompt]}${git_info[status]}'
+right_prompt_start() {
+  bg=$CURRENT_BG 
+  fg=$1
+  echo -n " %{%k%F{$fg}%}$RIGHT_SEGMENT_SEPARATOR"
+  LAST_BG=$1
+}
+
+function my_dir_color() {
+  if [[ -O "." ]]; then
+    if [[ -w "." ]]; then
+      DIR_COLOR='blue'
+    else
+      DIR_COLOR='yellow'
+    fi
+  else
+    if [[ -w "." ]]; then
+      DIR_COLOR='green'
+    else
+      DIR_COLOR='red'
+    fi
   fi
-  prompt_end
+}
+
+function build_left_prompt {
+  my_dir_color
+  left_prompt_segment $DIR_COLOR black '%~'
+  if $git_status; then
+    left_prompt_segment green black '${(e)git_info[prompt]}${git_info[status]}'
+  fi
+  left_prompt_end
+}
+
+function build_right_prompt {
+  right_prompt_start 92
+  right_prompt_segment 92 black '%D{%L:%M:%S %p}'
+  #right_prompt_segment 91 default '%(1?;%{%F{red}%}✘ ;)%(!;%{%F{yellow}%}⚡ ;)%(1j;%{%F{cyan}%}%j⚙ ;)%{%F{blue}%}%n%{%F{red}%}@%{%F{green}%}%M'
+  right_prompt_segment 123 black '%n@%m'
 }
 
 start_time=$SECONDS
@@ -113,9 +158,9 @@ function prompt_paradox_setup {
 
   # Define prompts.
   PROMPT='
-%{%f%b%k%}$(build_prompt)
+%{%f%b%k%}$(build_left_prompt)
  ${editor_info[keymap]} '
-  RPROMPT='[%D{%L:%M:%S %p}]'
+  RPROMPT='$(build_right_prompt)'
   SPROMPT='zsh: correct %F{red}%R%f to %F{green}%r%f [nyae]? '
 }
 
