@@ -36,7 +36,9 @@ zstyle ':prezto:load' pmodule \
   'archive' \
   'git' \
   'tmux' \
-  'spectrum' 
+  'spectrum' \
+  'rails' \
+  'ruby'
 
 #
 # Editor
