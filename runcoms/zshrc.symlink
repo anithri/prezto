@@ -30,10 +30,12 @@ alias pc2="cd ~/workspace/;revm;cd pc2"
 export JAVA_HOME=/usr/lib/jvm/java-6-openjdk/
 export LESS='-R-i-P?f%f:stdin. ?m(%i/%m). Line %lb?L/%L(%Pb\%).'
 
-#if [[ -s ~/.zshrc-private.gpg && ! -s ~/.zshrc-private ]]; then
-  #~/bin/decrypt_file ~/.zshrc-private.gpg
-#fi
-#[[ -s ~/.zshrc-private ]] && source ~/.zshrc-private
+# use .localrc for SUPER SECRET CRAP that you don't
+# want in your public, versioned repo.
+if [[ -a ~/.localrc ]]
+then
+  source ~/.localrc
+fi
 
 show_random_alias() {
   saveIFS=$IFS
